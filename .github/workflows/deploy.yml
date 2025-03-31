@@ -22,12 +22,15 @@ jobs:
               run: npm install
 
             - name: Build the project
-              run: npm run build
+              run: |
+                  npm run build
+
+            - name: Install Wrangler CLI
+              run: npm install -g wrangler
 
             - name: Deploy to Cloudflare Pages
-              uses: cloudflare/pages-action@v1
+              uses: cloudflare/wrangler-action@v3
               with:
-                  account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  project-name: sigfault
-                  api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-                  directory: out
+                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  command: pages deploy ./out --project-name=sigfault
