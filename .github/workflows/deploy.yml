@@ -1,4 +1,4 @@
-name: Deploy Next.js to Cloudflare Pages
+name: Deploy Next.js to Cloudflare Pages & S3
 
 on:
     push:
@@ -22,9 +22,9 @@ jobs:
               run: npm install
 
             - name: Build the project
-              run: |
-                  npm run build
+              run: npm run build
 
+            # Deploy to Cloudflare Pages
             - name: Install Wrangler CLI
               run: npm install -g wrangler
 
@@ -34,3 +34,14 @@ jobs:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   command: pages deploy ./out --project-name=sigfault
+
+            # Deploy to AWS S3
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: ap-south-1
+
+            - name: Upload to S3
+              run: aws s3 sync ./out s3://sigfault --acl public-read --delete
