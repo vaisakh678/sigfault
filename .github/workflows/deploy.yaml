@@ -1,0 +1,53 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [development]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - "turbo.json"
+      - ".github/workflows/**"
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # - name: Debug VITE_API_URL from repo vars
+      #   run: echo "VITE_API_URL=${{ vars.VITE_API_URL }}"
+
+      - name: Build frontend (Turbo)
+        run: pnpm turbo run build --filter=./apps/sigfault
+
+      - name: Configure AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::739275464452:role/GithubActionFrontendDeployRole-sigfault
+          aws-region: ap-south-1
+
+      - name: Deploy to S3
+        run: aws s3 sync apps/sigfault/dist arn:aws:s3:::sigfault --delete
+
+      - name: Invalidate CloudFront Cache
+        run: aws cloudfront create-invalidation --distribution-id E27FYKE5KYHPLF --paths "/*"
