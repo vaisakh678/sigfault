@@ -4,7 +4,7 @@ on:
   push:
     branches: [development]
     paths:
-      - "apps/web/**"
+      - "apps/sigfault/**"
       - "packages/**"
       - "pnpm-lock.yaml"
       - "turbo.json"
