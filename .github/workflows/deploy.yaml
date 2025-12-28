@@ -47,7 +47,7 @@ jobs:
           aws-region: ap-south-1
 
       - name: Deploy to S3
-        run: aws s3 sync apps/sigfault/dist arn:aws:s3:::sigfault --delete
+        run: aws s3 sync apps/sigfault/out s3://sigfault --delete
 
       - name: Invalidate CloudFront Cache
         run: aws cloudfront create-invalidation --distribution-id E27FYKE5KYHPLF --paths "/*"
